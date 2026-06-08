@@ -63,15 +63,17 @@ export default function ClienteHome() {
         return
       }
 
-      const { data: clienteExistente, error: errorBusqueda } = await supabase
+      const { data: clientes, error: errorBusqueda } = await supabase
         .from('clientes')
         .select('*')
         .eq('telefono', telefonoNormalizado)
-        .single()
+        .limit(1)
 
-      if (errorBusqueda && errorBusqueda.code !== 'PGRST116') {
+      if (errorBusqueda) {
         throw errorBusqueda
       }
+
+      const clienteExistente = clientes?.[0]
 
       if (clienteExistente) {
         setCliente(clienteExistente as Cliente)
@@ -102,7 +104,7 @@ export default function ClienteHome() {
         throw new Error('Negocio no encontrado')
       }
 
-      const { data: nuevoCliente, error: errorRegistro } = await supabase
+      const { data: nuevosClientes, error: errorRegistro } = await supabase
         .from('clientes')
         .insert({
           negocio_id: negocio.id,
@@ -112,9 +114,13 @@ export default function ClienteHome() {
           referido_por: referidoPor.trim() || null,
         })
         .select()
-        .single()
 
       if (errorRegistro) throw errorRegistro
+
+      const nuevoCliente = nuevosClientes?.[0]
+      if (!nuevoCliente) {
+        throw new Error('Error al registrar cliente')
+      }
 
       setCliente(nuevoCliente as Cliente)
       setMostrarFormularioRegistro(false)
