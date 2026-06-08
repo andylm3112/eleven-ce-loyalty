@@ -12,6 +12,15 @@ function getErrorMessage(err: unknown, fallback: string) {
   return fallback
 }
 
+function normalizarTelefono(valor: string) {
+  return valor.replace(/\D/g, '')
+}
+
+function esTelefonoValido(valor: string) {
+  const digitos = normalizarTelefono(valor)
+  return digitos.length >= 9 && digitos.length <= 15
+}
+
 export default function ClienteHome() {
   const [telefono, setTelefono] = useState('')
   const [nombre, setNombre] = useState('')
@@ -27,11 +36,21 @@ export default function ClienteHome() {
     setError(null)
     setMostrarFormularioRegistro(false)
 
+    const telefonoNormalizado = normalizarTelefono(telefono)
+
+    if (!esTelefonoValido(telefonoNormalizado)) {
+      setError('El teléfono debe tener entre 9 y 15 dígitos.')
+      setLoading(false)
+      return
+    }
+
+    setTelefono(telefonoNormalizado)
+
     try {
       const { data: esAdmin, error: errorAdmin } = await supabase
         .from('administradores')
         .select('*')
-        .eq('telefono', telefono)
+        .eq('telefono', telefonoNormalizado)
         .single()
 
       if (errorAdmin && errorAdmin.code !== 'PGRST116') {
@@ -47,7 +66,7 @@ export default function ClienteHome() {
       const { data: clienteExistente, error: errorBusqueda } = await supabase
         .from('clientes')
         .select('*')
-        .eq('telefono', telefono)
+        .eq('telefono', telefonoNormalizado)
         .single()
 
       if (errorBusqueda && errorBusqueda.code !== 'PGRST116') {
@@ -88,7 +107,7 @@ export default function ClienteHome() {
         .insert({
           negocio_id: negocio.id,
           nombre: nombre.trim(),
-          telefono: telefono,
+          telefono: normalizarTelefono(telefono),
           puntos: 0,
           referido_por: referidoPor.trim() || null,
         })
@@ -213,11 +232,14 @@ export default function ClienteHome() {
               inputMode="tel"
               autoComplete="tel"
               value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
+              onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
               className="w-full px-4 py-3 bg-black border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none text-white"
-              placeholder="Ej: 5512345678"
+              placeholder="Ej: 6621234567"
+              minLength={9}
+              maxLength={15}
               required
             />
+            <p className="text-xs text-zinc-500 mt-2">9 a 15 dígitos</p>
           </div>
 
           {error && (
