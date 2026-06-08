@@ -28,8 +28,72 @@ export default function ScanPage() {
   const [mensaje, setMensaje] = useState<string | null>(null)
 
   useEffect(() => {
-    verificarYCargar()
+    void verificarYCargar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recarga al cambiar clienteId
   }, [clienteId])
+
+  async function verificarSesion(): Promise<'login' | 'error' | string> {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession()
+
+    if (error) {
+      setError(`Error al verificar sesión: ${error.message}`)
+      return 'error'
+    }
+
+    if (!session) {
+      sessionStorage.setItem('redirect_after_login', `/scan/${clienteId}`)
+      navigate('/login')
+      return 'login'
+    }
+
+    if (!session.user.email) {
+      setError('Tu sesión no tiene email asociado. Vuelve a iniciar sesión.')
+      return 'error'
+    }
+
+    return session.user.email
+  }
+
+  async function verificarAdmin(email: string): Promise<'home' | 'error' | true> {
+    const { data, error } = await supabase
+      .from('administradores')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (error) {
+      console.error('Error buscando admin:', error)
+      setError(`Error al verificar administrador: ${error.message}`)
+      return 'error'
+    }
+
+    if (!data) {
+      navigate('/')
+      return 'home'
+    }
+
+    setAdmin(data as Admin)
+    return true
+  }
+
+  async function cargarClientePorId(id: string): Promise<ClienteConNegocio | null> {
+    const { data, error } = await supabase.from('clientes').select('*').eq('id', id).maybeSingle()
+
+    if (error) {
+      setError(`Error al buscar cliente: ${error.message}`)
+      return null
+    }
+
+    if (!data) {
+      setError('Cliente no encontrado. Verifica que el QR sea válido.')
+      return null
+    }
+
+    return data as ClienteConNegocio
+  }
 
   async function verificarYCargar() {
     setLoading(true)
@@ -41,71 +105,31 @@ export default function ScanPage() {
       return
     }
 
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
-
-    if (sessionError) {
-      setError(`Error al verificar sesión: ${sessionError.message}`)
+    const sesion = await verificarSesion()
+    if (sesion === 'login') {
+      return
+    }
+    if (sesion === 'error') {
       setLoading(false)
       return
     }
 
-    if (!session) {
-      sessionStorage.setItem('redirect_after_login', `/scan/${clienteId}`)
-      navigate('/login')
+    const esAdmin = await verificarAdmin(sesion)
+    if (esAdmin === 'home') {
       return
     }
-
-    if (!session.user.email) {
-      setError('Tu sesión no tiene email asociado. Vuelve a iniciar sesión.')
+    if (esAdmin === 'error') {
       setLoading(false)
       return
     }
 
-    const { data: adminData, error: adminError } = await supabase
-      .from('administradores')
-      .select('*')
-      .eq('email', session.user.email)
-      .maybeSingle()
-
-    if (adminError) {
-      console.error('Error buscando admin:', adminError)
-      setError(
-        `No se pudo verificar permisos de administrador (${adminError.code ?? 'error'}).`
-      )
-      setLoading(false)
-      return
-    }
-
-    if (!adminData) {
-      setLoading(false)
-      navigate('/')
-      return
-    }
-
-    setAdmin(adminData as Admin)
-
-    const { data: clienteData, error: clienteError } = await supabase
-      .from('clientes')
-      .select('*')
-      .eq('id', clienteId)
-      .maybeSingle()
-
-    if (clienteError) {
-      setError(`Error al buscar cliente: ${clienteError.message}`)
-      setLoading(false)
-      return
-    }
-
+    const clienteData = await cargarClientePorId(clienteId)
     if (!clienteData) {
-      setError('Cliente no encontrado. Verifica que el QR sea válido.')
       setLoading(false)
       return
     }
 
-    await verificarExpiracionPuntos(clienteData as ClienteConNegocio)
+    await verificarExpiracionPuntos(clienteData)
     await cargarCuponesCliente(clienteData.id)
 
     setLoading(false)
