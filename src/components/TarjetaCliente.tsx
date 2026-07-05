@@ -31,7 +31,7 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
             particleCount: 150,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#D4AF37', '#FFD700', '#000000'],
+            colors: ['#3c4142', '#11196d', '#f0f0f0'],
           })
         }, 500)
       }
@@ -97,23 +97,23 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-4 border-[#D4AF37] border-t-transparent rounded-full"></div>
+      <div className="min-h-screen text-light flex items-center justify-center">
+        <div className="animate-spin h-12 w-12 border-4 border-secondary border-t-transparent rounded-full"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen text-light p-6">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">ELEVEN CE STUDIOS</h1>
-          <p className="text-gray-400">Tarjeta de Fidelidad</p>
+          <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-24 mx-auto" />
+          <p className="text-gray-400 mt-2">Tarjeta de Fidelidad</p>
         </div>
 
         {/* Tarjeta principal */}
-        <div className="bg-gradient-to-br from-zinc-900 to-black border-2 border-[#D4AF37] rounded-2xl p-8 shadow-2xl mb-6">
+        <div className="bg-gradient-to-br from-primary/95 to-primary border-2 border-secondary rounded-2xl p-8 shadow-primary-lg mb-6">
           {/* Nombre y teléfono */}
           <div className="text-center mb-6">
             <h2 className="text-3xl font-bold mb-2">{cliente.nombre}</h2>
@@ -129,25 +129,21 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
 
           {/* Progreso */}
           <div className="mb-8">
-            <p className="text-center text-lg mb-4">
-              <span className="text-[#D4AF37] font-bold text-2xl">{puntos}</span>
-              <span className="text-gray-400"> / 10 visitas</span>
+            <p className="text-center text-2xl font-bold mb-4 text-[#D4AF37]">
+              Has sido elevado a {puntos} estrellas
             </p>
 
-            {/* Círculos de puntos */}
+            {/* Estrellas de puntos */}
             <div className="flex gap-2 flex-wrap justify-center">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                <div
+                <img
                   key={num}
-                  className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all
-                    ${
-                      num <= puntos
-                        ? 'bg-[#D4AF37] border-[#D4AF37] text-black scale-110 shadow-lg shadow-[#D4AF37]/50'
-                        : 'bg-transparent border-zinc-700 text-zinc-600'
-                    }`}
-                >
-                  {num}
-                </div>
+                  src="/no_bg_image (1).png"
+                  alt={`Estrella ${num}`}
+                  className={`w-16 h-16 object-contain transition-opacity ${
+                    num <= puntos ? 'opacity-100' : 'opacity-30'
+                  }`}
+                />
               ))}
             </div>
           </div>
@@ -164,12 +160,12 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
         {/* Cupones activos */}
         {cupones.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-[#D4AF37] mb-3">🎁 Cupones Disponibles</h3>
+            <h3 className="text-xl font-bold text-light mb-3">🎁 Cupones Disponibles</h3>
             {cupones.map((cupon) => (
-              <div key={cupon.id} className="bg-zinc-900 border border-[#D4AF37] rounded-lg p-4 mb-3">
+              <div key={cupon.id} className="bg-primary/90 border border-secondary rounded-lg p-4 mb-3">
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="font-bold text-lg">{cupon.cupones.nombre}</h4>
-                  <span className="text-xs bg-[#D4AF37] text-black px-3 py-1 rounded font-bold">
+                  <span className="text-xs bg-secondary text-light px-3 py-1 rounded font-bold">
                     {cupon.cupones.tipo === '2x1' ? '2x1' : 'GRATIS'}
                   </span>
                 </div>
@@ -185,7 +181,7 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
         {/* Botón volver */}
         <button
           onClick={onVolver}
-          className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-lg transition"
+          className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 rounded-lg transition"
         >
           ← Nueva búsqueda
         </button>
