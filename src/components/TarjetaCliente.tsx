@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { QRCodeCanvas } from 'qrcode.react'
 import confetti from 'canvas-confetti'
 import { supabase } from '../lib/supabase'
@@ -7,6 +7,13 @@ import type { Cliente, CuponCliente } from '../types'
 interface Props {
   cliente: Cliente
   onVolver: () => void
+}
+
+const PUNTOS_META = 10
+
+function pseudoRandom(seed: number) {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
 }
 
 export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Props) {
@@ -95,6 +102,17 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
   const puntos = cliente.puntos || 0
   const qrUrl = `${import.meta.env.VITE_APP_DOMAIN}/scan/${cliente.id}`
 
+  const estrellasStyles = useMemo(() => {
+    return Array.from({ length: puntos }, (_, i) => {
+      const seed = cliente.id.charCodeAt(0) + i * 31
+      const rotation = -15 + pseudoRandom(seed) * 30
+      const scale = 0.9 + pseudoRandom(seed + 7) * 0.2
+      return { rotation, scale }
+    })
+  }, [puntos, cliente.id])
+
+  const circulosRestantes = Math.max(PUNTOS_META - puntos, 0)
+
   if (loading) {
     return (
       <div className="min-h-screen text-light flex items-center justify-center">
@@ -130,20 +148,21 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
           {/* Progreso */}
           <div className="mb-8">
             <p className="text-center text-2xl font-bold mb-4 text-[#D4AF37]">
-              Has sido elevado a {puntos} estrellas
+              Has sido elevado a {cliente.puntos} estrellas
             </p>
 
-            {/* Estrellas de puntos */}
-            <div className="flex gap-2 flex-wrap justify-center">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+            <div className="flex gap-2 flex-wrap justify-center items-center">
+              {estrellasStyles.map(({ rotation, scale }, i) => (
                 <img
-                  key={num}
+                  key={`estrella-${i}`}
                   src="/no_bg_image (1).png"
-                  alt={`Estrella ${num}`}
-                  className={`w-16 h-16 object-contain transition-opacity ${
-                    num <= puntos ? 'opacity-100' : 'opacity-30'
-                  }`}
+                  alt={`Estrella ${i + 1}`}
+                  className="w-16 h-16 object-contain"
+                  style={{ transform: `rotate(${rotation.toFixed(1)}deg) scale(${scale.toFixed(2)})` }}
                 />
+              ))}
+              {Array.from({ length: circulosRestantes }, (_, i) => (
+                <div key={`pendiente-${i}`} className="w-4 h-4 rounded-full bg-gray-500" />
               ))}
             </div>
           </div>
