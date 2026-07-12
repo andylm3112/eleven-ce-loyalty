@@ -10,7 +10,6 @@ export default function AdminLoginPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Si ya hay sesión, redirigir
     const checkSession = async () => {
       const {
         data: { session },
@@ -51,7 +50,6 @@ export default function AdminLoginPage() {
         return
       }
 
-      // Verificar que sea administrador
       const { data: admin, error: adminError } = await supabase
         .from('administradores')
         .select('*')
@@ -65,7 +63,6 @@ export default function AdminLoginPage() {
         return
       }
 
-      // Redirigir
       const redirect = sessionStorage.getItem('redirect_after_login')
       if (redirect) {
         sessionStorage.removeItem('redirect_after_login')
@@ -81,14 +78,17 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+    <div className="min-h-screen text-light flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">ELEVEN CE STUDIOS</h1>
+          <h1 className="font-[Palace Script] text-4xl text-primary mb-2">ELEVEN CE STUDIOS</h1>
           <p className="text-gray-400">Panel de Administración</p>
         </div>
 
-        <form onSubmit={handleLogin} className="bg-zinc-900 border border-[#D4AF37] rounded-lg p-8">
+        <form
+          onSubmit={handleLogin}
+          className="bg-primary/90 border border-secondary rounded-lg p-8 shadow-primary"
+        >
           <div className="mb-6">
             <label htmlFor="email" className="block text-sm font-medium mb-2">
               Email
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-black border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none text-white"
+              className="w-full px-4 py-3 bg-primary border border-secondary/60 rounded focus:border-secondary focus:outline-none text-light"
               placeholder="admin@elevence.com"
               required
             />
@@ -113,7 +113,7 @@ export default function AdminLoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-black border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none text-white"
+              className="w-full px-4 py-3 bg-primary border border-secondary/60 rounded focus:border-secondary focus:outline-none text-light"
               placeholder="••••••••"
               required
             />
@@ -128,14 +128,14 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
         </form>
 
         <div className="text-center mt-6">
-          <a href="/" className="text-[#D4AF37] hover:underline text-sm">
+          <a href="/" className="text-gray-300 hover:underline text-sm">
             ← Volver a inicio
           </a>
         </div>

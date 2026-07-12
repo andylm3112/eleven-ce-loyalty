@@ -189,8 +189,8 @@ export default function AdminPanel() {
 
   if (adminLoading || loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-4 border-[#D4AF37] border-t-transparent rounded-full"></div>
+      <div className="min-h-screen text-light flex items-center justify-center">
+        <div className="animate-spin h-12 w-12 border-4 border-secondary border-t-transparent rounded-full"></div>
       </div>
     )
   }
@@ -200,12 +200,12 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen text-light p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">ELEVEN CE STUDIOS</h1>
-            <p className="text-gray-400">Panel de Administración</p>
+            <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-24 mx-auto" />
+            <p className="text-gray-400 mt-2">Panel de Administración</p>
             <p className="text-sm text-gray-500">
               Sesión: {admin.email} ({admin.rol})
             </p>
@@ -222,8 +222,8 @@ export default function AdminPanel() {
           <div className="mb-6 p-4 bg-red-900/20 border border-red-500 rounded text-red-200">{error}</div>
         )}
 
-        <div className="bg-zinc-900 border border-[#D4AF37] rounded-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold text-[#D4AF37] mb-4">📋 Historial de Premios</h2>
+        <div className="bg-primary/90 border border-secondary rounded-lg p-6 mb-6 shadow-primary">
+          <h2 className="text-2xl font-bold text-light mb-4">📋 Historial de Premios</h2>
 
           {premios.length === 0 ? (
             <p className="text-gray-400">No hay premios canjeados aún.</p>
@@ -231,7 +231,7 @@ export default function AdminPanel() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-zinc-700">
+                  <tr className="border-b border-secondary/60">
                     <th className="pb-3 pr-4">Cliente</th>
                     <th className="pb-3 pr-4">Teléfono</th>
                     <th className="pb-3 pr-4">Cupón</th>
@@ -242,16 +242,16 @@ export default function AdminPanel() {
                 </thead>
                 <tbody>
                   {premios.map((premio) => (
-                    <tr key={premio.id} className="border-b border-zinc-800">
+                    <tr key={premio.id} className="border-b border-secondary/40">
                       <td className="py-3 pr-4">{premio.clientes?.nombre || 'N/A'}</td>
                       <td className="py-3 pr-4 text-gray-400">{premio.clientes?.telefono || 'N/A'}</td>
                       <td className="py-3 pr-4 font-bold">{premio.cupones?.nombre || 'N/A'}</td>
                       <td className="py-3 pr-4">
-                        <span className="text-xs bg-[#D4AF37] text-black px-2 py-1 rounded font-bold">
+                        <span className="text-xs bg-secondary text-light px-2 py-1 rounded font-bold">
                           {premio.cupones?.tipo === '2x1' ? '2x1' : 'GRATIS'}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 text-[#D4AF37]">{premio.puntos_al_canjear}</td>
+                      <td className="py-3 pr-4 text-light">{premio.puntos_al_canjear}</td>
                       <td className="py-3 text-sm text-gray-400">{formatearFecha(premio.fecha)}</td>
                     </tr>
                   ))}
@@ -262,12 +262,12 @@ export default function AdminPanel() {
         </div>
 
         {admin.rol === 'dueño' && (
-          <div className="bg-zinc-900 border border-[#D4AF37] rounded-lg p-6">
-            <h2 className="text-2xl font-bold text-[#D4AF37] mb-4">👥 Gestión de Equipo</h2>
+          <div className="bg-primary/90 border border-secondary rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-light mb-4">👥 Gestión de Equipo</h2>
 
             <form
               onSubmit={handleAgregarAdmin}
-              className="mb-6 p-4 bg-black rounded-lg border border-zinc-700"
+              className="mb-6 p-4 bg-primary rounded-lg border border-secondary/60"
             >
               <h3 className="text-lg font-bold mb-4">Agregar Administrador</h3>
 
@@ -278,7 +278,7 @@ export default function AdminPanel() {
                     type="email"
                     value={nuevoEmail}
                     onChange={(e) => setNuevoEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full px-3 py-2 bg-primary/90 border border-secondary/60 rounded focus:border-secondary focus:outline-none"
                     placeholder="admin@example.com"
                     required
                   />
@@ -290,7 +290,7 @@ export default function AdminPanel() {
                     type="tel"
                     value={nuevoTelefono}
                     onChange={(e) => setNuevoTelefono(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full px-3 py-2 bg-primary/90 border border-secondary/60 rounded focus:border-secondary focus:outline-none"
                     placeholder="6621234567"
                     minLength={10}
                     required
@@ -302,7 +302,7 @@ export default function AdminPanel() {
                   <select
                     value={nuevoRol}
                     onChange={(e) => setNuevoRol(e.target.value as 'admin' | 'dueño')}
-                    className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none"
+                    className="w-full px-3 py-2 bg-primary/90 border border-secondary/60 rounded focus:border-secondary focus:outline-none"
                   >
                     <option value="admin">Admin</option>
                     <option value="dueño">Dueño</option>
@@ -313,7 +313,7 @@ export default function AdminPanel() {
               <button
                 type="submit"
                 disabled={agregandoAdmin}
-                className="w-full md:w-auto px-6 py-2 bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold rounded transition disabled:opacity-50"
+                className="w-full md:w-auto px-6 py-2 bg-secondary hover:bg-secondary/80 text-light font-bold rounded transition disabled:opacity-50"
               >
                 {agregandoAdmin ? 'Agregando...' : '+ Agregar Administrador'}
               </button>
@@ -329,7 +329,7 @@ export default function AdminPanel() {
                 {admins.map((a) => (
                   <div
                     key={a.id}
-                    className="flex justify-between items-center p-3 bg-black rounded border border-zinc-700"
+                    className="flex justify-between items-center p-3 bg-primary rounded border border-secondary/60"
                   >
                     <div>
                       <p className="font-bold">{a.email}</p>
@@ -345,7 +345,7 @@ export default function AdminPanel() {
                         Eliminar
                       </button>
                     )}
-                    {a.id === admin.id && <span className="text-xs text-[#D4AF37]">(Tú)</span>}
+                    {a.id === admin.id && <span className="text-xs text-light">(Tú)</span>}
                   </div>
                 ))}
               </div>

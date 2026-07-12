@@ -254,7 +254,7 @@ export default function ScanPage() {
           particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#D4AF37', '#000000']
+          colors: ['#3c4142', '#11196d', '#f0f0f0']
         })
       }
 
@@ -307,7 +307,7 @@ export default function ScanPage() {
           particleCount: 150,
           spread: 100,
           origin: { y: 0.6 },
-          colors: ['#D4AF37', '#000000']
+          colors: ['#3c4142', '#11196d', '#f0f0f0']
         })
 
         // Recargar cupones
@@ -359,7 +359,7 @@ export default function ScanPage() {
         particleCount: 150,
         spread: 100,
         origin: { y: 0.6 },
-        colors: ['#D4AF37', '#000000']
+        colors: ['#3c4142', '#11196d', '#f0f0f0']
       })
 
       // Recargar cupones
@@ -379,10 +379,10 @@ export default function ScanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen text-light flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#D4AF37] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#D4AF37]">Cargando cliente...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-secondary border-t-transparent mx-auto mb-4"></div>
+          <p className="text-light">Cargando cliente...</p>
         </div>
       </div>
     )
@@ -390,7 +390,7 @@ export default function ScanPage() {
 
   if (error || !cliente) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <div className="min-h-screen text-light flex items-center justify-center p-6">
         <div className="max-w-md w-full">
           <div className="bg-red-900/20 border-2 border-red-500 rounded-lg p-6 mb-6">
             <p className="text-red-400 text-center">
@@ -400,13 +400,13 @@ export default function ScanPage() {
           <div className="space-y-3">
             <button
               onClick={() => navigate('/admin')}
-              className="w-full bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold py-3 px-6 rounded-lg transition"
+              className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 px-6 rounded-lg transition"
             >
               Volver al Panel
             </button>
             <button
               onClick={() => navigate('/')}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg transition border border-gray-700"
+              className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 px-6 rounded-lg transition border border-secondary/60"
             >
               Ir al Inicio
             </button>
@@ -419,13 +419,11 @@ export default function ScanPage() {
   const circulos = Array.from({ length: 10 }, (_, i) => i < cliente.puntos)
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen text-light p-6">
       <div className="max-w-2xl mx-auto">
         {/* Encabezado */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#D4AF37] mb-2" style={{ fontFamily: 'Oswald, sans-serif' }}>
-            ELEVEN CE STUDIOS
-          </h1>
+          <h1 className="font-[Palace Script] text-4xl text-primary mb-2">ELEVEN CE STUDIOS</h1>
           <p className="text-gray-400">Panel de Administrador</p>
         </div>
 
@@ -443,11 +441,11 @@ export default function ScanPage() {
         )}
 
         {/* Tarjeta del Cliente */}
-        <div className="bg-gradient-to-br from-zinc-900 to-black border-2 border-[#D4AF37] rounded-2xl p-8 shadow-2xl mb-6">
+        <div className="bg-gradient-to-br from-primary/95 to-primary border-2 border-secondary rounded-2xl p-8 shadow-primary-lg mb-6">
           {/* Nombre */}
           <div className="text-center mb-6">
             <div className="text-xs text-gray-500 mb-1">CLIENTE</div>
-            <h2 className="text-2xl font-bold text-[#D4AF37]" style={{ fontFamily: 'Oswald, sans-serif' }}>
+            <h2 className="text-2xl font-bold text-light">
               {cliente.nombre}
             </h2>
             <p className="text-gray-400 text-sm">{cliente.telefono}</p>
@@ -461,7 +459,7 @@ export default function ScanPage() {
                 <div
                   key={i}
                   className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    lleno ? 'bg-[#D4AF37] border-[#D4AF37]' : 'bg-transparent border-gray-600'
+                    lleno ? 'bg-secondary border-secondary' : 'bg-transparent border-secondary/40'
                   }`}
                 />
               ))}
@@ -476,7 +474,7 @@ export default function ScanPage() {
             <button
               onClick={handleAddVisit}
               disabled={disabled}
-              className="w-full bg-[#D4AF37] hover:bg-[#B8941F] disabled:bg-gray-700 disabled:text-gray-500 text-black font-bold py-4 px-6 rounded-lg transition mb-4"
+              className="w-full bg-secondary hover:bg-secondary/80 disabled:bg-gray-700 disabled:text-gray-500 text-light font-bold py-4 px-6 rounded-lg transition mb-4"
             >
               {disabled ? 'Procesando...' : 'Añadir Visita (+1)'}
             </button>
@@ -492,10 +490,10 @@ export default function ScanPage() {
                   : null
 
                 return (
-                  <div key={cc.id} className="bg-zinc-800 border border-[#D4AF37] rounded-lg p-4">
+                  <div key={cc.id} className="bg-secondary/80 border border-secondary rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-bold text-[#D4AF37]">{cc.cupones.nombre}</p>
+                        <p className="font-bold text-light">{cc.cupones.nombre}</p>
                         <p className="text-xs text-gray-400">{cc.cupones.descripcion}</p>
                       </div>
                       {diasRestantes !== null && (
@@ -507,7 +505,7 @@ export default function ScanPage() {
                     <button
                       onClick={() => handleCanjearCupon(cc.id, cc.cupon_id, cc.cupones.tipo)}
                       disabled={disabled}
-                      className="w-full bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-white font-bold py-2 px-4 rounded transition text-sm"
+                      className="w-full bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-light font-bold py-2 px-4 rounded transition text-sm"
                     >
                       Canjear Cupón
                     </button>
@@ -521,7 +519,7 @@ export default function ScanPage() {
         {/* Botón Volver */}
         <button
           onClick={() => navigate('/admin')}
-          className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg transition border border-gray-700"
+          className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 px-6 rounded-lg transition border border-secondary/60"
         >
           ← Volver al Panel
         </button>

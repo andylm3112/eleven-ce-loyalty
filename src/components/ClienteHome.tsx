@@ -47,15 +47,14 @@ export default function ClienteHome() {
     setTelefono(telefonoNormalizado)
 
     try {
-      const { data: esAdmin, error: errorAdmin } = await supabase
+      const { data: administradores, error: errorAdmin } = await supabase
         .from('administradores')
         .select('*')
         .eq('telefono', telefonoNormalizado)
-        .single()
+        .limit(1)
 
-      if (errorAdmin && errorAdmin.code !== 'PGRST116') {
-        throw errorAdmin
-      }
+      if (errorAdmin) throw errorAdmin
+      const esAdmin = administradores?.[0]
 
       if (esAdmin) {
         setError('Los administradores no pueden ser clientes')
@@ -93,13 +92,15 @@ export default function ClienteHome() {
     setError(null)
 
     try {
-      const { data: negocio, error: errorNegocio } = await supabase
+      const { data: negocios, error: errorNegocio } = await supabase
         .from('negocios')
         .select('id')
         .eq('nombre', 'ELEVEN CE STUDIOS')
-        .single()
+        .limit(1)
 
       if (errorNegocio) throw errorNegocio
+      const negocio = negocios?.[0]
+      
       if (!negocio) {
         throw new Error('Negocio no encontrado')
       }
@@ -153,15 +154,15 @@ export default function ClienteHome() {
 
   if (mostrarFormularioRegistro) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <div className="min-h-screen text-light flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-[#D4AF37] mb-2">ELEVEN CE STUDIOS</h1>
+            <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-20 mx-auto mb-4" />
             <p className="text-gray-400">Completa tu registro</p>
             <p className="text-sm text-zinc-500 mt-2">Teléfono: {telefono}</p>
           </div>
 
-          <form onSubmit={registrarCliente} className="bg-zinc-900 border border-[#D4AF37] rounded-lg p-8">
+          <form onSubmit={registrarCliente} className="bg-primary/90 border border-secondary rounded-lg p-8 shadow-primary">
             <div className="mb-6">
               <label htmlFor="nombre" className="block text-sm font-medium mb-2">
                 Nombre
@@ -171,7 +172,7 @@ export default function ClienteHome() {
                 type="text"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full px-4 py-3 bg-black border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none text-white"
+                className="w-full px-4 py-3 bg-primary border border-secondary/60 rounded focus:border-secondary focus:outline-none text-light"
                 placeholder="Tu nombre"
                 required
               />
@@ -186,7 +187,7 @@ export default function ClienteHome() {
                 type="text"
                 value={referidoPor}
                 onChange={(e) => setReferidoPor(e.target.value)}
-                className="w-full px-4 py-3 bg-black border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none text-white"
+                className="w-full px-4 py-3 bg-primary border border-secondary/60 rounded focus:border-secondary focus:outline-none text-light"
                 placeholder="Teléfono o nombre"
               />
             </div>
@@ -200,7 +201,7 @@ export default function ClienteHome() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+              className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed mb-4"
             >
               {loading ? 'Registrando...' : 'Registrarme'}
             </button>
@@ -209,7 +210,7 @@ export default function ClienteHome() {
               type="button"
               onClick={handleVolverDesdeRegistro}
               disabled={loading}
-              className="w-full py-2 text-[#D4AF37] hover:underline text-sm disabled:opacity-50"
+              className="w-full py-2 text-gray-300 hover:underline text-sm disabled:opacity-50"
             >
               ← Volver a buscar con otro teléfono
             </button>
@@ -220,14 +221,14 @@ export default function ClienteHome() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+    <div className="min-h-screen text-light flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-[#D4AF37] mb-2">ELEVEN CE STUDIOS</h1>
+          <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-20 mx-auto mb-4" />
           <p className="text-gray-400">Ingresa tu teléfono para ver tu tarjeta de lealtad</p>
         </div>
 
-        <form onSubmit={buscarCliente} className="bg-zinc-900 border border-[#D4AF37] rounded-lg p-8">
+        <form onSubmit={buscarCliente} className="bg-primary/90 border border-secondary rounded-lg p-8 shadow-primary">
           <div className="mb-6">
             <label htmlFor="telefono" className="block text-sm font-medium mb-2">
               Teléfono
@@ -239,7 +240,7 @@ export default function ClienteHome() {
               autoComplete="tel"
               value={telefono}
               onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
-              className="w-full px-4 py-3 bg-black border border-zinc-700 rounded focus:border-[#D4AF37] focus:outline-none text-white"
+              className="w-full px-4 py-3 bg-primary border border-secondary/60 rounded focus:border-secondary focus:outline-none text-light"
               placeholder="Ej: 6621234567"
               minLength={9}
               maxLength={15}
@@ -257,7 +258,7 @@ export default function ClienteHome() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#D4AF37] hover:bg-[#B8941F] text-black font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Buscando...' : 'Continuar'}
           </button>
