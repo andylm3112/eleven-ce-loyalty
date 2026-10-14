@@ -263,6 +263,13 @@ export default function ClienteHome() {
             {loading ? 'Buscando...' : 'Continuar'}
           </button>
         </form>
+
+        <a
+          href="/agendar"
+          className="block w-full mt-4 py-3 text-center border border-secondary/60 hover:border-light rounded font-bold transition"
+        >
+          Agendar una cita
+        </a>
       </div>
     </div>
   )

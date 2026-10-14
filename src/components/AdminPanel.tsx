@@ -210,12 +210,20 @@ export default function AdminPanel() {
               Sesión: {admin.email} ({admin.rol})
             </p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-6 py-2 bg-red-900 hover:bg-red-800 rounded transition font-bold"
-          >
-            Cerrar Sesión
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate('/admin/agenda')}
+              className="px-6 py-2 bg-secondary hover:bg-secondary/80 rounded transition font-bold"
+            >
+              Agenda
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-6 py-2 bg-red-900 hover:bg-red-800 rounded transition font-bold"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
 
         {error && (
