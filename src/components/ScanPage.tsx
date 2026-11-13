@@ -6,6 +6,9 @@ import type { Admin, Cliente, CuponCliente } from '../types'
 
 type ClienteConNegocio = Cliente & { negocio_id: string }
 
+// Visitas por vuelta de la tarjeta. Al canjear el premio final, los puntos vuelven a 0.
+const PUNTOS_META = 10
+
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error) return err.message
   if (typeof err === 'object' && err !== null && 'message' in err) {
@@ -129,13 +132,23 @@ export default function ScanPage() {
       return
     }
 
-    await verificarExpiracionPuntos(clienteData)
+    const clienteVigente = await verificarExpiracionPuntos(clienteData)
+
+    // Reparación: si completó la tarjeta y no tiene el premio final pendiente
+    // (p. ej. por el bug anterior), se le entrega ahora para que pueda canjearlo.
+    if (clienteVigente.puntos >= PUNTOS_META) {
+      const ganados = await otorgarCuponesDeLaVuelta(clienteVigente, PUNTOS_META)
+      if (ganados.length > 0) {
+        setMensaje(`🎉 Tarjeta completa: se entregó ${ganados.join(', ')}. ¡Ya puede canjearlo!`)
+      }
+    }
+
     await cargarCuponesCliente(clienteData.id)
 
     setLoading(false)
   }
 
-  async function verificarExpiracionPuntos(clienteData: ClienteConNegocio) {
+  async function verificarExpiracionPuntos(clienteData: ClienteConNegocio): Promise<ClienteConNegocio> {
     // Obtener configuración del negocio
     const { data: negocio } = await supabase
       .from('negocios')
@@ -145,7 +158,7 @@ export default function ScanPage() {
 
     if (!negocio || !negocio.dias_expiracion || !clienteData.ultima_visita) {
       setCliente(clienteData)
-      return
+      return clienteData
     }
 
     const hoy = new Date()
@@ -161,11 +174,14 @@ export default function ScanPage() {
         .select()
         .single()
 
+      const vigente = (clienteActualizado as ClienteConNegocio | null) || { ...clienteData, puntos: 0 }
       setMensaje('⚠️ Los puntos de este cliente expiraron por inactividad')
-      setCliente(clienteActualizado || { ...clienteData, puntos: 0 })
-    } else {
-      setCliente(clienteData)
+      setCliente(vigente)
+      return vigente
     }
+
+    setCliente(clienteData)
+    return clienteData
   }
 
   async function cargarCuponesCliente(clienteId: string) {
@@ -202,6 +218,13 @@ export default function ScanPage() {
     setError(null)
 
     try {
+      // Tarjeta llena: primero se canjea el premio final, luego empieza otra vuelta
+      if (cliente.puntos >= PUNTOS_META) {
+        setError(`🏆 Este cliente ya completó su tarjeta. Canjea su premio para empezar una nueva vuelta.`)
+        setTimeout(() => setDisabled(false), 3000)
+        return
+      }
+
       // Verificar máximo 1 punto por día
       if (cliente.ultima_visita) {
         const hoy = new Date().toDateString()
@@ -228,28 +251,25 @@ export default function ScanPage() {
 
       if (updateError) throw updateError
 
-      // Insertar en historial
-      await supabase.from('historial_visitas').insert({
+      // Insertar en historial (registro de quién sumó la visita)
+      const { error: historialError } = await supabase.from('historial_visitas').insert({
         cliente_id: cliente.id,
         admin_id: admin.id,
         puntos_sumados: 1
       })
+      if (historialError) console.error('No se pudo guardar el historial de la visita:', historialError)
 
-      // Contar total de visitas
-      const { count } = await supabase
-        .from('historial_visitas')
-        .select('*', { count: 'exact', head: true })
-        .eq('cliente_id', cliente.id)
-
-      const totalVisitas = (count || 0) + 1 // +1 por la que acabamos de añadir
-
-      // Verificar si se activa un cupón
-      await verificarCupon(totalVisitas, clienteActualizado)
+      // Premios de esta vuelta: se deciden por los puntos actuales (1 a PUNTOS_META), no por el total histórico
+      const ganados = await otorgarCuponesDeLaVuelta(clienteActualizado as ClienteConNegocio, nuevosPuntos)
 
       setCliente(clienteActualizado)
-      setMensaje('✅ Visita añadida correctamente')
+      setMensaje(
+        ganados.length > 0
+          ? `✅ Visita añadida. 🎉 ¡Ganó: ${ganados.join(', ')}!`
+          : '✅ Visita añadida correctamente'
+      )
 
-      if (nuevosPuntos === 10) {
+      if (nuevosPuntos === PUNTOS_META) {
         confetti({
           particleCount: 100,
           spread: 70,
@@ -270,50 +290,71 @@ export default function ScanPage() {
     }
   }
 
-  async function verificarCupon(totalVisitas: number, clienteData: ClienteConNegocio) {
-    // Buscar cupón para este hito de visitas
-    const { data: cupones } = await supabase
+  // Entrega los cupones cuyo hito coincide con los puntos de la vuelta actual.
+  // Un cupón ya canjeado o caducado se puede volver a ganar en la siguiente vuelta;
+  // solo se omite si el cliente tiene uno igual pendiente y vigente.
+  // Devuelve los nombres de los cupones entregados.
+  async function otorgarCuponesDeLaVuelta(clienteData: ClienteConNegocio, puntosVuelta: number): Promise<string[]> {
+    const ganados: string[] = []
+    const { data: cupones, error: cuponesError } = await supabase
       .from('cupones')
       .select('*')
       .eq('negocio_id', clienteData.negocio_id)
-      .eq('visita_requerida', totalVisitas)
+      .eq('visita_requerida', puntosVuelta)
       .eq('activo', true)
 
-    if (cupones && cupones.length > 0) {
-      const cupon = cupones[0]
-      
-      // Verificar si ya tiene este cupón
-      const { data: existente } = await supabase
+    if (cuponesError) {
+      console.error('Error buscando cupones:', cuponesError)
+      return ganados
+    }
+
+    for (const cupon of cupones ?? []) {
+      const { data: pendientes, error: pendientesError } = await supabase
         .from('cupones_clientes')
-        .select('*')
+        .select('id, fecha_expiracion')
         .eq('cliente_id', clienteData.id)
         .eq('cupon_id', cupon.id)
-        .single()
+        .eq('canjeado', false)
 
-      if (!existente) {
-        // Otorgar cupón
-        const fechaExpiracion = new Date()
-        fechaExpiracion.setDate(fechaExpiracion.getDate() + (cupon.dias_validez || 30))
-
-        await supabase.from('cupones_clientes').insert({
-          cliente_id: clienteData.id,
-          cupon_id: cupon.id,
-          fecha_expiracion: fechaExpiracion.toISOString()
-        })
-
-        setMensaje(`🎉 ¡Felicidades! Ganaste: ${cupon.nombre}`)
-        
-        confetti({
-          particleCount: 150,
-          spread: 100,
-          origin: { y: 0.6 },
-          colors: ['#3c4142', '#11196d', '#f0f0f0']
-        })
-
-        // Recargar cupones
-        await cargarCuponesCliente(clienteData.id)
+      if (pendientesError) {
+        console.error('Error revisando cupones del cliente:', pendientesError)
+        continue
       }
+
+      const ahora = new Date()
+      const tieneVigente = (pendientes ?? []).some(
+        (p) => !p.fecha_expiracion || new Date(p.fecha_expiracion) > ahora
+      )
+      if (tieneVigente) continue
+
+      const fechaExpiracion = new Date()
+      fechaExpiracion.setDate(fechaExpiracion.getDate() + (cupon.dias_validez || 30))
+
+      const { error: insertError } = await supabase.from('cupones_clientes').insert({
+        cliente_id: clienteData.id,
+        cupon_id: cupon.id,
+        fecha_expiracion: fechaExpiracion.toISOString()
+      })
+
+      if (insertError) {
+        setError(`No se pudo entregar el cupón ${cupon.nombre}: ${insertError.message}`)
+        continue
+      }
+
+      ganados.push(cupon.nombre)
     }
+
+    if (ganados.length > 0) {
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#3c4142', '#11196d', '#f0f0f0']
+      })
+    }
+
+    await cargarCuponesCliente(clienteData.id)
+    return ganados
   }
 
   async function handleCanjearCupon(cuponClienteId: string, cuponId: string, tipo: string) {
@@ -324,32 +365,42 @@ export default function ScanPage() {
     setError(null)
 
     try {
-      // Marcar cupón como canjeado
-      await supabase
+      // Marcar cupón como canjeado. Solo si sigue pendiente, para que un doble
+      // toque o dos dispositivos no lo canjeen dos veces.
+      const { data: marcados, error: canjeError } = await supabase
         .from('cupones_clientes')
-        .update({ 
-          canjeado: true, 
-          fecha_canje: new Date().toISOString() 
+        .update({
+          canjeado: true,
+          fecha_canje: new Date().toISOString()
         })
         .eq('id', cuponClienteId)
+        .eq('canjeado', false)
+        .select('id')
+
+      if (canjeError) throw canjeError
+      if (!marcados || marcados.length === 0) {
+        throw new Error('Este cupón ya fue canjeado.')
+      }
 
       // Insertar en historial
-      await supabase.from('historial_premios').insert({
+      const { error: historialError } = await supabase.from('historial_premios').insert({
         cliente_id: cliente.id,
         admin_id: admin.id,
         cupon_id: cuponId,
         puntos_al_canjear: cliente.puntos
       })
+      if (historialError) console.error('No se pudo guardar el historial del premio:', historialError)
 
-      // Si es el corte gratis (visita 10), resetear puntos
+      // Premio final de la vuelta (corte gratis): la tarjeta vuelve a 0
       if (tipo === 'producto_gratis') {
-        const { data: clienteActualizado } = await supabase
+        const { data: clienteActualizado, error: resetError } = await supabase
           .from('clientes')
           .update({ puntos: 0 })
           .eq('id', cliente.id)
           .select()
           .single()
 
+        if (resetError) throw resetError
         setCliente(clienteActualizado || { ...cliente, puntos: 0 })
       }
 
