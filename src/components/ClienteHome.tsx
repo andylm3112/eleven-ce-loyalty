@@ -21,6 +21,15 @@ function esTelefonoValido(valor: string) {
   return digitos.length >= 9 && digitos.length <= 15
 }
 
+function Cargando({ texto }: { texto: string }) {
+  return (
+    <span className="inline-flex items-center justify-center gap-2">
+      <span className="h-4 w-4 rounded-full border-2 border-light/40 border-t-light animate-spin" aria-hidden="true" />
+      {texto}…
+    </span>
+  )
+}
+
 export default function ClienteHome() {
   const [telefono, setTelefono] = useState('')
   const [nombre, setNombre] = useState('')
@@ -155,14 +164,14 @@ export default function ClienteHome() {
   if (mostrarFormularioRegistro) {
     return (
       <div className="min-h-screen text-light flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
+        <div key="registro" className="w-full max-w-md animate-entrar-arriba">
           <div className="text-center mb-8">
-            <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-20 mx-auto mb-4" />
+            <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-20 mx-auto mb-4 animate-flotar" />
             <p className="text-gray-400">Completa tu registro</p>
             <p className="text-sm text-zinc-500 mt-2">Teléfono: {telefono}</p>
           </div>
 
-          <form onSubmit={registrarCliente} className="bg-primary/90 border border-secondary rounded-lg p-8 shadow-primary">
+          <form onSubmit={registrarCliente} className="tarjeta-vidrio p-8 animate-entrar-arriba" style={{ animationDelay: '80ms' }}>
             <div className="mb-6">
               <label htmlFor="nombre" className="block text-sm font-medium mb-2">
                 Nombre
@@ -172,7 +181,7 @@ export default function ClienteHome() {
                 type="text"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full px-4 py-3 bg-primary border border-secondary/60 rounded focus:border-secondary focus:outline-none text-light"
+                className="campo"
                 placeholder="Tu nombre"
                 required
               />
@@ -187,13 +196,13 @@ export default function ClienteHome() {
                 type="text"
                 value={referidoPor}
                 onChange={(e) => setReferidoPor(e.target.value)}
-                className="w-full px-4 py-3 bg-primary border border-secondary/60 rounded focus:border-secondary focus:outline-none text-light"
+                className="campo"
                 placeholder="Teléfono o nombre"
               />
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-900/20 border border-red-500 rounded text-red-200 text-sm">
+              <div key={error} role="alert" className="mb-6 p-4 bg-red-900/20 border border-red-500 rounded-lg text-red-200 text-sm animate-sacudir">
                 {error}
               </div>
             )}
@@ -201,16 +210,16 @@ export default function ClienteHome() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+              className="boton-principal w-full mb-4"
             >
-              {loading ? 'Registrando...' : 'Registrarme'}
+              {loading ? <Cargando texto="Registrando" /> : 'Registrarme'}
             </button>
 
             <button
               type="button"
               onClick={handleVolverDesdeRegistro}
               disabled={loading}
-              className="w-full py-2 text-gray-300 hover:underline text-sm disabled:opacity-50"
+              className="w-full py-2 text-gray-300 text-sm transition-colors hover:text-light disabled:opacity-50"
             >
               ← Volver a buscar con otro teléfono
             </button>
@@ -222,13 +231,13 @@ export default function ClienteHome() {
 
   return (
     <div className="min-h-screen text-light flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
+      <div key="buscar" className="w-full max-w-md animate-entrar-arriba">
         <div className="text-center mb-8">
-          <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-20 mx-auto mb-4" />
+          <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-20 mx-auto mb-4 animate-flotar" />
           <p className="text-gray-400">Ingresa tu teléfono para ver tu tarjeta de lealtad</p>
         </div>
 
-        <form onSubmit={buscarCliente} className="bg-primary/90 border border-secondary rounded-lg p-8 shadow-primary">
+        <form onSubmit={buscarCliente} className="tarjeta-vidrio p-8 animate-entrar-arriba" style={{ animationDelay: '80ms' }}>
           <div className="mb-6">
             <label htmlFor="telefono" className="block text-sm font-medium mb-2">
               Teléfono
@@ -240,7 +249,7 @@ export default function ClienteHome() {
               autoComplete="tel"
               value={telefono}
               onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
-              className="w-full px-4 py-3 bg-primary border border-secondary/60 rounded focus:border-secondary focus:outline-none text-light"
+              className="campo"
               placeholder="Ej: 6621234567"
               minLength={9}
               maxLength={15}
@@ -250,7 +259,7 @@ export default function ClienteHome() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-900/20 border border-red-500 rounded text-red-200 text-sm">
+            <div key={error} role="alert" className="mb-6 p-4 bg-red-900/20 border border-red-500 rounded-lg text-red-200 text-sm animate-sacudir">
               {error}
             </div>
           )}
@@ -258,15 +267,16 @@ export default function ClienteHome() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="boton-principal w-full"
           >
-            {loading ? 'Buscando...' : 'Continuar'}
+            {loading ? <Cargando texto="Buscando" /> : 'Continuar'}
           </button>
         </form>
 
         <a
           href="/agendar"
-          className="block w-full mt-4 py-3 text-center border border-secondary/60 hover:border-light rounded font-bold transition"
+          className="boton-secundario block w-full mt-4 text-center animate-entrar-arriba"
+          style={{ animationDelay: '160ms' }}
         >
           Agendar una cita
         </a>

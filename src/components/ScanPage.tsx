@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import confetti from 'canvas-confetti'
+import { celebrar, vibrar } from '../lib/animaciones'
 import type { Admin, Cliente, CuponCliente } from '../types'
 
 type ClienteConNegocio = Cliente & { negocio_id: string }
@@ -263,20 +263,21 @@ export default function ScanPage() {
       const ganados = await otorgarCuponesDeLaVuelta(clienteActualizado as ClienteConNegocio, nuevosPuntos)
 
       setCliente(clienteActualizado)
+      // Si ganó cupón, otorgarCuponesDeLaVuelta ya lanzó la celebración grande
+      if (ganados.length > 0) {
+        vibrar([60, 60, 120])
+      } else if (nuevosPuntos === PUNTOS_META) {
+        celebrar('premio')
+        vibrar([60, 60, 120])
+      } else {
+        celebrar('visita')
+        vibrar(40)
+      }
       setMensaje(
         ganados.length > 0
           ? `✅ Visita añadida. 🎉 ¡Ganó: ${ganados.join(', ')}!`
           : '✅ Visita añadida correctamente'
       )
-
-      if (nuevosPuntos === PUNTOS_META) {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#3c4142', '#11196d', '#f0f0f0']
-        })
-      }
 
       setTimeout(() => {
         setDisabled(false)
@@ -345,12 +346,7 @@ export default function ScanPage() {
     }
 
     if (ganados.length > 0) {
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#3c4142', '#11196d', '#f0f0f0']
-      })
+      celebrar('premio')
     }
 
     await cargarCuponesCliente(clienteData.id)
@@ -406,12 +402,8 @@ export default function ScanPage() {
 
       setMensaje('🎁 ¡Cupón canjeado exitosamente!')
       
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#3c4142', '#11196d', '#f0f0f0']
-      })
+      celebrar('premio')
+      vibrar(50)
 
       // Recargar cupones
       await cargarCuponesCliente(cliente.id)
@@ -431,18 +423,27 @@ export default function ScanPage() {
   if (loading) {
     return (
       <div className="min-h-screen text-light flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-secondary border-t-transparent mx-auto mb-4"></div>
-          <p className="text-light">Cargando cliente...</p>
+        <div className="w-full max-w-2xl p-6" aria-busy="true" aria-label="Cargando cliente">
+          <div className="esqueleto h-10 w-64 mx-auto mb-8" />
+          <div className="tarjeta-vidrio p-8">
+            <div className="esqueleto h-7 w-1/2 mx-auto mb-3" />
+            <div className="esqueleto h-4 w-1/3 mx-auto mb-8" />
+            <div className="flex justify-center gap-2 mb-8">
+              {Array.from({ length: PUNTOS_META }, (_, i) => (
+                <div key={i} className="esqueleto h-8 w-8 rounded-full" />
+              ))}
+            </div>
+            <div className="esqueleto h-14 w-full" />
+          </div>
         </div>
       </div>
     )
   }
 
-  if (error || !cliente) {
+  if (!cliente) {
     return (
       <div className="min-h-screen text-light flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
+        <div className="max-w-md w-full animate-entrar-arriba">
           <div className="bg-red-900/20 border-2 border-red-500 rounded-lg p-6 mb-6">
             <p className="text-red-400 text-center">
               {error || 'No se pudo cargar la información del cliente.'}
@@ -451,13 +452,13 @@ export default function ScanPage() {
           <div className="space-y-3">
             <button
               onClick={() => navigate('/admin')}
-              className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 px-6 rounded-lg transition"
+              className="boton-principal w-full px-6"
             >
               Volver al Panel
             </button>
             <button
               onClick={() => navigate('/')}
-              className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 px-6 rounded-lg transition border border-secondary/60"
+              className="boton-secundario w-full px-6"
             >
               Ir al Inicio
             </button>
@@ -467,32 +468,39 @@ export default function ScanPage() {
     )
   }
 
-  const circulos = Array.from({ length: 10 }, (_, i) => i < cliente.puntos)
+  const puntosVuelta = Math.min(cliente.puntos, PUNTOS_META)
+  const completa = cliente.puntos >= PUNTOS_META
+  const circulos = Array.from({ length: PUNTOS_META }, (_, i) => i < puntosVuelta)
 
   return (
     <div className="min-h-screen text-light p-6">
       <div className="max-w-2xl mx-auto">
         {/* Encabezado */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 animate-entrar-arriba">
           <h1 className="font-[Palace Script] text-4xl text-primary mb-2">ELEVEN CE STUDIOS</h1>
           <p className="text-gray-400">Panel de Administrador</p>
         </div>
 
         {/* Mensajes */}
         {mensaje && (
-          <div className="bg-green-900/20 border-2 border-green-500 rounded-lg p-4 mb-6">
+          <div key={mensaje} role="status" className="bg-green-900/20 border-2 border-green-500 rounded-lg p-4 mb-6 animate-entrar-escala">
             <p className="text-green-400 text-center font-bold">{mensaje}</p>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-900/20 border-2 border-red-500 rounded-lg p-4 mb-6">
+          <div key={error} role="alert" className="bg-red-900/20 border-2 border-red-500 rounded-lg p-4 mb-6 animate-sacudir">
             <p className="text-red-400 text-center">{error}</p>
           </div>
         )}
 
         {/* Tarjeta del Cliente */}
-        <div className="bg-gradient-to-br from-primary/95 to-primary border-2 border-secondary rounded-2xl p-8 shadow-primary-lg mb-6">
+        <div
+          className={`bg-gradient-to-br from-primary/95 to-primary border-2 rounded-2xl p-8 mb-6 animate-entrar-arriba transition-[border-color,box-shadow] duration-700 ease-suave ${
+            completa ? 'border-oro/80 shadow-oro' : 'border-secondary shadow-primary-lg'
+          }`}
+          style={{ animationDelay: '80ms' }}
+        >
           {/* Nombre */}
           <div className="text-center mb-6">
             <div className="text-xs text-gray-500 mb-1">CLIENTE</div>
@@ -508,26 +516,37 @@ export default function ScanPage() {
             <div className="flex justify-center gap-2 mb-2">
               {circulos.map((lleno, i) => (
                 <div
-                  key={i}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    lleno ? 'bg-secondary border-secondary' : 'bg-transparent border-secondary/40'
+                  key={`${lleno ? 'lleno' : 'vacio'}-${i}`}
+                  className={`w-8 h-8 rounded-full border-2 ${
+                    lleno ? 'bg-oro border-oro animate-estrella-pop' : 'bg-transparent border-secondary/50'
                   }`}
                 />
               ))}
             </div>
             <div className="text-center text-sm text-gray-400">
-              {cliente.puntos} / 10 visitas
+              <span className="tabular-nums">{puntosVuelta}</span> / {PUNTOS_META} visitas
             </div>
           </div>
 
           {/* Botón Añadir Visita */}
-          {cliente.puntos < 10 && (
+          {completa ? (
+            <div className="con-brillo relative overflow-hidden rounded-lg border border-oro/70 bg-oro/10 p-4 mb-4 text-center font-bold text-oro animate-entrar-escala">
+              🏆 Tarjeta completa: canjea el corte gratis para empezar una nueva vuelta
+            </div>
+          ) : (
             <button
               onClick={handleAddVisit}
               disabled={disabled}
-              className="w-full bg-secondary hover:bg-secondary/80 disabled:bg-gray-700 disabled:text-gray-500 text-light font-bold py-4 px-6 rounded-lg transition mb-4"
+              className="boton w-full bg-secondary hover:bg-secondary/80 hover:-translate-y-px hover:shadow-primary-lg disabled:bg-gray-700 disabled:text-gray-400 disabled:hover:translate-y-0 text-light py-4 px-6 mb-4"
             >
-              {disabled ? 'Procesando...' : 'Añadir Visita (+1)'}
+              {disabled ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-4 w-4 rounded-full border-2 border-light/40 border-t-light animate-spin" aria-hidden="true" />
+                  Procesando…
+                </span>
+              ) : (
+                'Añadir Visita (+1)'
+              )}
             </button>
           )}
 
@@ -535,13 +554,17 @@ export default function ScanPage() {
           {cuponesCliente.length > 0 && (
             <div className="mt-6 space-y-3">
               <div className="text-xs text-gray-500 text-center">CUPONES ACTIVOS</div>
-              {cuponesCliente.map((cc) => {
+              {cuponesCliente.map((cc, i) => {
                 const diasRestantes = cc.fecha_expiracion 
                   ? Math.ceil((new Date(cc.fecha_expiracion).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
                   : null
 
                 return (
-                  <div key={cc.id} className="bg-secondary/80 border border-secondary rounded-lg p-4">
+                  <div
+                    key={cc.id}
+                    className="con-brillo relative overflow-hidden bg-secondary/80 border border-oro/50 rounded-xl p-4 shadow-oro animate-entrar-escala"
+                    style={{ animationDelay: `${i * 90}ms` }}
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-bold text-light">{cc.cupones.nombre}</p>
@@ -556,7 +579,7 @@ export default function ScanPage() {
                     <button
                       onClick={() => handleCanjearCupon(cc.id, cc.cupon_id, cc.cupones.tipo)}
                       disabled={disabled}
-                      className="w-full bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-light font-bold py-2 px-4 rounded transition text-sm"
+                      className="boton w-full bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-light py-2 px-4 text-sm"
                     >
                       Canjear Cupón
                     </button>
@@ -570,7 +593,7 @@ export default function ScanPage() {
         {/* Botón Volver */}
         <button
           onClick={() => navigate('/admin')}
-          className="w-full bg-secondary hover:bg-secondary/80 text-light font-bold py-3 px-6 rounded-lg transition border border-secondary/60"
+          className="boton-secundario w-full px-6"
         >
           ← Volver al Panel
         </button>
