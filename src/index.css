@@ -6,11 +6,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Oswald', sans-serif;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('/hubble-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  background-color: #05071f;
   color: #f0f0f0;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -19,11 +15,24 @@ body {
 h1,
 h2,
 .brand {
-  font-family: 'Palace Script MT', 'Palace Script', cursive;
+  /* Palace Script MT si el equipo la tiene; Pinyon Script (Google Fonts) es la más parecida para el resto */
+  font-family: 'Palace Script MT', 'Pinyon Script', cursive;
 }
 
 #root {
   min-height: 100vh;
+  /* Capa propia por encima del fondo fijo */
+  position: relative;
+  z-index: 1;
+}
+
+/* Fondo fijo en una capa aparte: background-attachment: fixed falla en iPhone */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)), url('/hubble-bg.webp') center / cover no-repeat;
 }
 
 @layer components {
@@ -35,7 +44,7 @@ h2,
   }
 
   .boton-principal {
-    @apply boton bg-secondary text-light py-3 hover:bg-secondary/80 hover:-translate-y-px hover:shadow-primary-lg
+    @apply boton bg-oro text-primary py-3 hover:bg-oro/90 hover:-translate-y-px hover:shadow-oro
       disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none;
   }
 
@@ -44,7 +53,7 @@ h2,
   }
 
   .campo {
-    @apply w-full px-4 py-3 bg-primary border border-secondary/60 rounded-lg text-light placeholder:text-gray-500
+    @apply w-full px-4 py-3 bg-primary border border-secondary/60 rounded-lg text-light placeholder:text-gray-400
       transition duration-200 ease-suave focus:outline-none focus:border-oro/70 focus:ring-2 focus:ring-oro/25;
   }
 

@@ -167,8 +167,8 @@ export default function ClienteHome() {
         <div key="registro" className="w-full max-w-md animate-entrar-arriba">
           <div className="text-center mb-8">
             <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-20 mx-auto mb-4 animate-flotar" />
-            <p className="text-gray-400">Completa tu registro</p>
-            <p className="text-sm text-zinc-500 mt-2">Teléfono: {telefono}</p>
+            <p className="text-gray-200">Completa tu registro</p>
+            <p className="text-sm text-gray-300 mt-2">Teléfono: {telefono}</p>
           </div>
 
           <form onSubmit={registrarCliente} className="tarjeta-vidrio p-8 animate-entrar-arriba" style={{ animationDelay: '80ms' }}>
@@ -234,7 +234,7 @@ export default function ClienteHome() {
       <div key="buscar" className="w-full max-w-md animate-entrar-arriba">
         <div className="text-center mb-8">
           <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-20 mx-auto mb-4 animate-flotar" />
-          <p className="text-gray-400">Ingresa tu teléfono para ver tu tarjeta de lealtad</p>
+          <p className="text-gray-200">Ingresa tu teléfono para ver tu tarjeta de lealtad</p>
         </div>
 
         <form onSubmit={buscarCliente} className="tarjeta-vidrio p-8 animate-entrar-arriba" style={{ animationDelay: '80ms' }}>
@@ -255,7 +255,7 @@ export default function ClienteHome() {
               maxLength={15}
               required
             />
-            <p className="text-xs text-zinc-500 mt-2">9 a 15 dígitos</p>
+            <p className="text-xs text-gray-300 mt-2">9 a 15 dígitos</p>
           </div>
 
           {error && (

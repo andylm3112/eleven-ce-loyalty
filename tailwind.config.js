@@ -10,7 +10,7 @@ export default {
         oro: '#D4AF37',
       },
       fontFamily: {
-        palace: ['Palace Script MT', 'Palace Script', 'cursive'],
+        palace: ['Palace Script MT', 'Pinyon Script', 'cursive'],
         oswald: ['Oswald', 'sans-serif'],
       },
       boxShadow: {

@@ -81,7 +81,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen text-light flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="font-[Palace Script] text-4xl text-primary mb-2">ELEVEN CE STUDIOS</h1>
+          <h1 className="font-palace text-5xl text-light mb-2">ELEVEN CE STUDIOS</h1>
           <p className="text-gray-400">Panel de Administración</p>
         </div>
 

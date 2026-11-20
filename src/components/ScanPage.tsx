@@ -477,7 +477,7 @@ export default function ScanPage() {
       <div className="max-w-2xl mx-auto">
         {/* Encabezado */}
         <div className="text-center mb-8 animate-entrar-arriba">
-          <h1 className="font-[Palace Script] text-4xl text-primary mb-2">ELEVEN CE STUDIOS</h1>
+          <h1 className="font-palace text-5xl text-light mb-2">ELEVEN CE STUDIOS</h1>
           <p className="text-gray-400">Panel de Administrador</p>
         </div>
 

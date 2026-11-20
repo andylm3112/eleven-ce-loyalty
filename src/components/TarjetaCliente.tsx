@@ -34,6 +34,7 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
   // Al abrir, las estrellas entran una por una; después, solo la nueva se anima
   const [entradaInicial, setEntradaInicial] = useState(true)
   const { aviso, mostrar, cerrar } = useAviso()
+  const [qrGrande, setQrGrande] = useState(false)
 
   const puntosPrevios = useRef(clienteInicial.puntos || 0)
   const cuponesPrevios = useRef<Set<string> | null>(null)
@@ -203,6 +204,16 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
     })
   }, [cliente.id])
 
+  // Escape cierra el QR en grande
+  useEffect(() => {
+    if (!qrGrande) return
+    const alTeclear = (e: KeyboardEvent) => e.key === 'Escape' && setQrGrande(false)
+    window.addEventListener('keydown', alTeclear)
+    return () => window.removeEventListener('keydown', alTeclear)
+  }, [qrGrande])
+
+  const telefonoOculto = cliente.telefono ? `•••• ${cliente.telefono.slice(-4)}` : ''
+
   const calcularDiasRestantes = (fechaExpiracion: string) => {
     const dias = Math.ceil((new Date(fechaExpiracion).getTime() - Date.now()) / 86_400_000)
     return dias > 0 ? dias : 0
@@ -213,15 +224,15 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
       <div className="min-h-screen p-6" aria-busy="true" aria-label="Cargando tu tarjeta">
         <div className="max-w-md mx-auto">
           <div className="esqueleto h-24 w-40 mx-auto mb-8" />
-          <div className="tarjeta-vidrio p-8 mb-6">
+          <div className="tarjeta-vidrio p-6 mb-6">
             <div className="esqueleto h-9 w-2/3 mx-auto mb-3" />
             <div className="esqueleto h-4 w-1/3 mx-auto mb-8" />
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
+            <div className="grid grid-cols-5 justify-items-center gap-2 mb-8">
               {Array.from({ length: PUNTOS_META }, (_, i) => (
                 <div key={i} className="esqueleto h-12 w-12 rounded-full" />
               ))}
             </div>
-            <div className="esqueleto h-52 w-52 mx-auto rounded-xl" />
+            <div className="esqueleto h-40 w-40 mx-auto rounded-xl" />
           </div>
         </div>
       </div>
@@ -232,16 +243,30 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
     <div className="min-h-screen text-light p-6">
       <Aviso aviso={aviso} onCerrar={cerrar} />
 
+      {qrGrande && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Código QR"
+          onClick={() => setQrGrande(false)}
+          className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-white p-6 animate-entrar-escala"
+        >
+          <QRCodeCanvas value={qrUrl} size={280} level="H" includeMargin={false} />
+          <p className="mt-6 text-xl font-bold text-primary">{cliente.nombre}</p>
+          <p className="mt-1 text-sm text-gray-600">Sube el brillo de tu pantalla · toca para cerrar</p>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6 animate-entrar-arriba">
           <img src="/no_bg_image.png" alt="ELEVEN CE STUDIOS" className="h-24 mx-auto animate-flotar" />
-          <p className="text-gray-400 mt-2 tracking-wide">Tarjeta de Fidelidad</p>
+          <p className="text-gray-200 mt-2 tracking-[0.2em] uppercase text-sm">Tarjeta de Fidelidad</p>
         </div>
 
         {/* Tarjeta principal */}
         <div
-          className={`relative overflow-hidden bg-gradient-to-br from-primary/95 to-primary border-2 rounded-2xl p-8 mb-6
+          className={`relative overflow-hidden bg-gradient-to-br from-primary/95 to-primary border-2 rounded-2xl p-6 mb-6
             animate-entrar-arriba transition-[border-color,box-shadow] duration-700 ease-suave
             ${completa ? 'border-oro/80 shadow-oro' : 'border-secondary shadow-primary-lg'}`}
           style={{ animationDelay: '80ms' }}
@@ -249,7 +274,7 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
           {/* Nombre y teléfono */}
           <div className="text-center mb-6">
             <h2 className="text-3xl font-bold mb-2">{cliente.nombre}</h2>
-            <p className="text-gray-400">Tel: {cliente.telefono}</p>
+            <p className="text-gray-300 tracking-wider">Tel: {telefonoOculto}</p>
           </div>
 
           {/* Mensaje de expiración */}
@@ -266,7 +291,7 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
               {puntosMostrados === 1 ? 'estrella' : 'estrellas'}
             </p>
 
-            <div className="flex gap-2 flex-wrap justify-center items-center min-h-[4rem]">
+            <div className="grid grid-cols-5 justify-items-center gap-2">
               {estrellasStyles.map(({ rotation, scale }, i) =>
                 i < puntos ? (
                   <span
@@ -277,16 +302,25 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
                     <img
                       src="/no_bg_image (1).png"
                       alt={`Estrella ${i + 1}`}
-                      className="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.35)]"
+                      className="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.35)]"
                       style={{ transform: `rotate(${rotation.toFixed(1)}deg) scale(${scale.toFixed(2)})` }}
                     />
                   </span>
                 ) : (
                   <span
                     key={`pendiente-${i}`}
-                    className="w-4 h-4 rounded-full bg-gray-500/70 animate-entrar-escala"
+                    className="inline-block animate-entrar-escala"
                     style={{ animationDelay: entradaInicial ? `${200 + i * 50}ms` : '0ms' }}
-                  />
+                  >
+                    {/* Silueta de la estrella que falta */}
+                    <img
+                      src="/no_bg_image (1).png"
+                      alt=""
+                      aria-hidden="true"
+                      className="w-12 h-12 object-contain grayscale opacity-20"
+                      style={{ transform: `rotate(${rotation.toFixed(1)}deg) scale(${scale.toFixed(2)})` }}
+                    />
+                  </span>
                 )
               )}
             </div>
@@ -305,7 +339,7 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
                   style={{ width: `${(puntos / PUNTOS_META) * 100}%` }}
                 />
               </div>
-              <p className="text-center text-sm text-gray-300 mt-2">
+              <p className="text-center text-sm text-gray-200 mt-2">
                 {completa
                   ? '🏆 ¡Tarjeta completa! Muestra tu QR para canjear tu corte gratis'
                   : faltan === 1
@@ -315,17 +349,20 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
             </div>
           </div>
 
-          {/* QR Code */}
-          <div className="mb-4">
-            <div
-              className={`bg-white p-6 rounded-xl mx-auto w-fit transition-transform duration-300 ease-suave hover:scale-[1.02] ${
+          {/* QR Code compacto; se abre en grande para escanear */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setQrGrande(true)}
+              aria-label="Ver código QR en grande"
+              className={`block bg-white p-4 rounded-xl mx-auto transition-transform duration-300 ease-suave hover:scale-[1.03] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-oro ${
                 completa ? 'animate-latido' : ''
               }`}
             >
-              <QRCodeCanvas value={qrUrl} size={200} level="H" includeMargin={false} />
-            </div>
-            <p className="text-xs text-gray-500 text-center mt-3">
-              Muestra este código en tu próxima visita. Tu tarjeta se actualiza sola.
+              <QRCodeCanvas value={qrUrl} size={140} level="H" includeMargin={false} />
+            </button>
+            <p className="text-xs text-gray-300 text-center mt-3">
+              Toca el código para verlo en grande. Tu tarjeta se actualiza sola.
             </p>
           </div>
         </div>
@@ -346,7 +383,7 @@ export default function TarjetaCliente({ cliente: clienteInicial, onVolver }: Pr
                     {cupon.cupones.tipo === '2x1' ? '2x1' : 'GRATIS'}
                   </span>
                 </div>
-                {cupon.cupones.descripcion && <p className="text-gray-400 text-sm mb-2">{cupon.cupones.descripcion}</p>}
+                {cupon.cupones.descripcion && <p className="text-gray-300 text-sm mb-2">{cupon.cupones.descripcion}</p>}
                 {cupon.fecha_expiracion && (
                   <p className="text-xs text-yellow-400">⏰ Expira en {calcularDiasRestantes(cupon.fecha_expiracion)} días</p>
                 )}
