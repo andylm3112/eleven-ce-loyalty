@@ -5,6 +5,7 @@ import AdminPanel from './components/AdminPanel'
 import ScanPage from './components/ScanPage'
 import AgendaCliente from './components/AgendaCliente'
 import AgendaAdmin from './components/AgendaAdmin'
+import HechoPorTavra from './components/HechoPorTavra'
 
 function App() {
   return (
@@ -17,6 +18,9 @@ function App() {
         <Route path="/agendar" element={<AgendaCliente />} />
         <Route path="/admin/agenda" element={<AgendaAdmin />} />
       </Routes>
+      <footer className="relative z-10 flex justify-center py-4">
+        <HechoPorTavra tono="oscuro" />
+      </footer>
     </BrowserRouter>
   )
 }
